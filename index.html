@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MPW Sports CRM</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e8e8f0; min-height: 100vh; }
+
+  :root {
+    --green: #00d4a0;
+    --green-dim: #00a37a;
+    --green-bg: rgba(0,212,160,0.08);
+    --amber: #f5a623;
+    --amber-bg: rgba(245,166,35,0.1);
+    --red: #ff5f5f;
+    --red-bg: rgba(255,95,95,0.1);
+    --blue: #4a9eff;
+    --blue-bg: rgba(74,158,255,0.1);
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --surface3: #22223a;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text-muted: #8888aa;
+  }
+
+  .app { display: flex; height: 100vh; overflow: hidden; }
+
+  .sidebar {
+    width: 220px; min-width: 220px; background: var(--surface);
+    border-right: 1px solid var(--border); display: flex; flex-direction: column;
+  }
+  .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid var(--border); }
+  .sidebar-logo .brand { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; color: var(--green); text-transform: uppercase; }
+  .sidebar-logo .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .sidebar-nav { flex: 1; padding: 12px 0; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 18px;
+    font-size: 13px; color: var(--text-muted); cursor: pointer;
+    transition: all 0.15s; border-left: 2px solid transparent;
+  }
+  .nav-item:hover { color: #e8e8f0; background: rgba(255,255,255,0.03); }
+  .nav-item.active { color: var(--green); border-left-color: var(--green); background: var(--green-bg); }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  .sidebar-brands { padding: 12px 18px 16px; border-top: 1px solid var(--border); }
+  .sidebar-brands .label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+  .brand-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .brand-pill {
+    font-size: 10px; padding: 3px 8px; border-radius: 20px;
+    border: 1px solid var(--border2); color: var(--text-muted); cursor: pointer;
+    transition: all 0.15s;
+  }
+  .brand-pill:hover, .brand-pill.active { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    padding: 14px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface);
+  }
+  .topbar-title { font-size: 16px; font-weight: 600; }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; border: 1px solid var(--border2);
+    background: transparent; color: #e8e8f0;
+  }
+  .btn:hover { background: rgba(255,255,255,0.06); }
+  .btn-primary { background: var(--green); color: #0a0a0f; border-color: var(--green); }
+  .btn-primary:hover { background: var(--green-dim); border-color: var(--green-dim); }
+
+  .connect-screen {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 24px; padding: 40px; overflow-y: auto;
+  }
+  .connect-card {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 16px; padding: 40px; max-width: 500px; width: 100%;
+  }
+  .connect-card h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+  .connect-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; }
+  .step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+  .step-num {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--green-bg);
+    border: 1px solid var(--green); color: var(--green); font-size: 11px;
+    font-weight: 700; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .step-text { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .step-text strong { color: #e8e8f0; }
+  .step-text a { color: var(--blue); }
+
+  .input-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+  .text-input {
+    width: 100%; padding: 9px 12px; background: var(--surface3); border: 1px solid var(--border2);
+    border-radius: 6px; color: #e8e8f0; font-size: 13px; margin-bottom: 12px;
+    font-family: monospace;
+  }
+  .text-input:focus { outline: none; border-color: var(--green); }
+  .text-input::placeholder { color: var(--text-muted); font-family: inherit; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  .dashboard { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+  }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .stat-value { font-size: 24px; font-weight: 600; }
+  .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  .alert-banner {
+    background: var(--amber-bg); border: 1px solid rgba(245,166,35,0.25);
+    border-radius: 8px; padding: 11px 16px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px; font-size: 13px;
+  }
+
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 14px; font-weight: 600; }
+  .search-input {
+    padding: 7px 12px; background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 6px; color: #e8e8f0; font-size: 13px; width: 220px;
+  }
+  .search-input:focus { outline: none; border-color: var(--green); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  .table-wrap { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: var(--surface3); }
+  th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; }
+  td { padding: 11px 14px; border-top: 1px solid var(--border); vertical-align: middle; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  tr.selected td { background: var(--green-bg); }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500;
+  }
+  .status-active { background: var(--green-bg); color: var(--green); }
+  .status-prospect { background: var(--blue-bg); color: var(--blue); }
+  .status-lapsed { background: var(--red-bg); color: var(--red); }
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  .brand-tag {
+    display: inline-block; padding: 2px 7px; border-radius: 4px;
+    font-size: 10px; font-weight: 500; margin: 2px; background: var(--surface3); color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .brand-tag.reusch { border-color: rgba(74,158,255,0.3); color: #4a9eff; }
+  .brand-tag.trusox { border-color: rgba(0,212,160,0.3); color: var(--green); }
+  .brand-tag.panini { border-color: rgba(245,166,35,0.3); color: var(--amber); }
+  .brand-tag.minix { border-color: rgba(255,95,95,0.3); color: var(--red); }
+  .brand-tag.snoozies { border-color: rgba(200,130,255,0.3); color: #c882ff; }
+
+  .action-btn {
+    padding: 4px 10px; border-radius: 5px; font-size: 11px;
+    cursor: pointer; border: 1px solid var(--border2); background: transparent;
+    color: var(--text-muted); transition: all 0.15s;
+  }
+  .action-btn:hover { border-color: var(--green); color: var(--green); }
+
+  .detail-panel {
+    width: 340px; min-width: 340px; background: var(--surface);
+    border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden;
+  }
+  .detail-header { padding: 18px; border-bottom: 1px solid var(--border); }
+  .detail-name { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+  .detail-company { font-size: 13px; color: var(--text-muted); }
+  .detail-body { flex: 1; overflow-y: auto; padding: 16px; }
+  .detail-section { margin-bottom: 20px; }
+  .detail-section-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 10px; }
+  .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-key { font-size: 12px; color: var(--text-muted); }
+  .detail-val { font-size: 12px; font-weight: 500; }
+
+  .order-item {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+  }
+  .order-item-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .order-date { font-size: 11px; color: var(--text-muted); }
+  .order-desc { font-size: 11px; color: var(--text-muted); }
+
+  .reminder-item {
+    background: var(--amber-bg); border: 1px solid rgba(245,166,35,0.2);
+    border-radius: 8px; padding: 9px 12px; margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .reminder-text { font-size: 12px; }
+  .reminder-date { font-size: 11px; color: var(--amber); }
+
+  .reminder-input {
+    width: 100%; padding: 8px 10px; background: var(--surface3);
+    border: 1px solid var(--border2); border-radius: 6px;
+    color: #e8e8f0; font-size: 12px; margin-bottom: 6px;
+    font-family: inherit;
+  }
+  .reminder-input:focus { outline: none; border-color: var(--green); }
+  .reminder-input::placeholder { color: var(--text-muted); }
+
+  .notes-area {
+    width: 100%; min-height: 80px; padding: 9px 10px;
+    background: var(--surface3); border: 1px solid var(--border2);
+    border-radius: 6px; color: #e8e8f0; font-size: 12px;
+    font-family: inherit; resize: vertical;
+  }
+  .notes-area:focus { outline: none; border-color: var(--green); }
+
+  .sync-overlay {
+    position: fixed; inset: 0; background: rgba(10,10,15,0.88);
+    display: flex; align-items: center; justify-content: center; z-index: 100;
+  }
+  .sync-card {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 16px; padding: 40px; text-align: center; max-width: 360px; width: 90%;
+  }
+  .sync-spinner {
+    width: 44px; height: 44px; border: 2px solid var(--border2);
+    border-top-color: var(--green); border-radius: 50%; margin: 0 auto 20px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .sync-status { font-size: 14px; color: var(--text-muted); margin-top: 8px; }
+  .progress-bar { margin-top: 20px; background: var(--surface3); border-radius: 8px; height: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.4s; border-radius: 8px; }
+
+  .empty-panel {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; color: var(--text-muted); font-size: 13px; gap: 8px;
+  }
+
+  .filter-tabs { display: flex; gap: 4px; }
+  .filter-tab {
+    padding: 5px 12px; border-radius: 5px; font-size: 12px; cursor: pointer;
+    background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .filter-tab.active { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+
+  .add-account-overlay {
+    position: fixed; inset: 0; background: rgba(10,10,15,0.88);
+    display: flex; align-items: center; justify-content: center; z-index: 100;
+  }
+  .add-account-card {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 16px; padding: 32px; max-width: 440px; width: 90%;
+  }
+  .add-account-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.07em; }
+  .form-input {
+    width: 100%; padding: 8px 10px; background: var(--surface3); border: 1px solid var(--border2);
+    border-radius: 6px; color: #e8e8f0; font-size: 13px; font-family: inherit;
+  }
+  .form-input:focus { outline: none; border-color: var(--green); }
+  .form-select {
+    width: 100%; padding: 8px 10px; background: var(--surface3); border: 1px solid var(--border2);
+    border-radius: 6px; color: #e8e8f0; font-size: 13px; font-family: inherit;
+  }
+  .brand-checkboxes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .brand-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); cursor: pointer; }
+  .brand-check input { accent-color: var(--green); }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">MPW Sports</div>
+      <div class="sub">Sales Rep CRM</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" id="nav-dashboard" onclick="setView('dashboard',this)">
+        <span class="nav-icon">◉</span> Dashboard
+      </div>
+      <div class="nav-item" id="nav-accounts" onclick="setView('accounts',this)">
+        <span class="nav-icon">◈</span> All Accounts
+      </div>
+      <div class="nav-item" id="nav-followups" onclick="setView('followups',this)">
+        <span class="nav-icon">◎</span> Follow-ups
+        <span id="followup-count" style="margin-left:auto;background:var(--amber-bg);color:var(--amber);font-size:10px;padding:2px 6px;border-radius:10px;display:none;"></span>
+      </div>
+      <div class="nav-item" id="nav-orders" onclick="setView('orders',this)">
+        <span class="nav-icon">◇</span> Orders
+      </div>
+    </div>
+    <div class="sidebar-brands">
+      <div class="label">Filter by brand</div>
+      <div class="brand-pills">
+        <div class="brand-pill" onclick="toggleBrand('Reusch',this)">Reusch</div>
+        <div class="brand-pill" onclick="toggleBrand('TruSox',this)">TruSox</div>
+        <div class="brand-pill" onclick="toggleBrand('Panini',this)">Panini</div>
+        <div class="brand-pill" onclick="toggleBrand('Minix',this)">Minix</div>
+        <div class="brand-pill" onclick="toggleBrand('Snoozies',this)">Snoozies</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main" id="main">
+
+    <!-- Connect Screen -->
+    <div id="connect-screen" class="connect-screen">
+      <div class="connect-card">
+        <h2>🔗 Connect Your Gmail</h2>
+        <p>This CRM reads your Gmail inbox to surface accounts, past orders, and contact history. All processing happens in your browser — nothing is stored externally.</p>
+
+        <div style="margin-bottom:16px;">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">Go to <strong><a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a></strong> → Create a project → Enable <strong>Gmail API</strong> + <strong>People API</strong></div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">OAuth consent screen → External → add <strong>mpwsports@gmail.com</strong> as a test user</div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text">Credentials → OAuth 2.0 Client ID → <strong>Web Application</strong> → add this page's URL as an authorized redirect URI</div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-text">Paste your <strong>Client ID</strong> below and click Connect</div>
+          </div>
+        </div>
+
+        <label class="input-label">Google OAuth Client ID</label>
+        <input class="text-input" id="client-id" placeholder="xxxxxx.apps.googleusercontent.com" />
+
+        <button class="btn btn-primary" style="width:100%;padding:11px;font-size:13px;" onclick="startAuth()">
+          Connect Gmail & Sync →
+        </button>
+
+        <hr class="divider" />
+
+        <button class="btn" style="width:100%;font-size:12px;color:var(--text-muted);" onclick="loadDemo()">
+          Load Demo Data (no Gmail needed)
+        </button>
+      </div>
+    </div>
+
+    <!-- CRM Screen -->
+    <div id="crm-screen" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+      <div class="topbar">
+        <div class="topbar-title" id="view-title">Dashboard</div>
+        <div class="topbar-actions">
+          <span style="font-size:11px;color:var(--text-muted);" id="last-sync">Demo mode</span>
+          <button class="btn" onclick="resync()">⟳ Sync Gmail</button>
+          <button class="btn btn-primary" onclick="showAddAccount()">+ Add Account</button>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;overflow:hidden;">
+        <div class="dashboard" id="content-area"></div>
+        <div class="detail-panel" id="detail-panel">
+          <div class="empty-panel">
+            <div style="font-size:28px;margin-bottom:8px;">👆</div>
+            <div>Select an account to view details</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Sync Overlay -->
+<div class="sync-overlay" id="sync-overlay" style="display:none;">
+  <div class="sync-card">
+    <div class="sync-spinner"></div>
+    <div style="font-size:16px;font-weight:600;" id="sync-main">Connecting to Gmail...</div>
+    <div class="sync-status" id="sync-sub">Reading your last 2 years of email</div>
+    <div class="progress-bar"><div class="progress-fill" id="sync-progress"></div></div>
+  </div>
+</div>
+
+<!-- Add Account Overlay -->
+<div class="add-account-overlay" id="add-overlay" style="display:none;">
+  <div class="add-account-card">
+    <h3>Add Account</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Contact Name</label>
+        <input class="form-input" id="f-name" placeholder="John Smith" />
+      </div>
+      <div class="form-group">
+        <label>Company</label>
+        <input class="form-input" id="f-company" placeholder="Soccer Shop Co." />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Email</label>
+        <input class="form-input" id="f-email" type="email" placeholder="john@shop.com" />
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input class="form-input" id="f-phone" placeholder="(949) 555-0100" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Territory</label>
+        <input class="form-input" id="f-territory" placeholder="Orange County" />
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select class="form-select" id="f-status">
+          <option value="prospect">Prospect</option>
+          <option value="active">Active</option>
+          <option value="lapsed">Lapsed</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Brands</label>
+      <div class="brand-checkboxes">
+        <label class="brand-check"><input type="checkbox" value="Reusch" /> Reusch</label>
+        <label class="brand-check"><input type="checkbox" value="TruSox" /> TruSox</label>
+        <label class="brand-check"><input type="checkbox" value="Panini" /> Panini</label>
+        <label class="brand-check"><input type="checkbox" value="Minix" /> Minix</label>
+        <label class="brand-check"><input type="checkbox" value="Snoozies" /> Snoozies</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea class="form-input" id="f-notes" rows="2" placeholder="Initial notes..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn" style="flex:1;" onclick="closeAddAccount()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="saveNewAccount()">Save Account</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BRANDS = ['Reusch','TruSox','Panini','Minix','Snoozies'];
+
+let state = {
+  view: 'dashboard',
+  accounts: [],
+  selectedId: null,
+  brandFilter: null,
+  tabFilter: 'all',
+  searchQuery: '',
+  accessToken: null
+};
+
+// ── Persist to localStorage ───────────────────────────────────────────────
+function save() {
+  try { localStorage.setItem('mpwcrm_accounts', JSON.stringify(state.accounts)); } catch(e) {}
+}
+function loadSaved() {
+  try {
+    const d = localStorage.getItem('mpwcrm_accounts');
+    if (d) { state.accounts = JSON.parse(d); return true; }
+  } catch(e) {}
+  return false;
+}
+
+// ── Demo Data ─────────────────────────────────────────────────────────────
+function loadDemo() {
+  state.accounts = [
+    {
+      id:1, name:'Dave Kowalski', company:'Goal Post Sports', email:'dave@goalpostsports.com',
+      phone:'(949) 555-0134', status:'active', territory:'Orange County',
+      lastEmail: new Date(Date.now()-3*864e5).toISOString(),
+      brands:['Reusch','Minix'],
+      orders:[
+        {brand:'Reusch',date:'2025-11-12',desc:'GK Pro Grip x6 pairs, Attrakt Freegel x4',amount:890},
+        {brand:'Minix',date:'2025-08-03',desc:'Messi Mini Series x12 units',amount:540},
+        {brand:'Reusch',date:'2024-09-20',desc:'Seasonal restock — 8 pairs mixed',amount:760},
+      ],
+      reminders:[{text:'Follow up on fall reorder', date:'2026-04-28'}],
+      notes:'Prefers email. Big Reusch buyer — goalkeeper coach at OC United. May expand to TruSox.'
+    },
+    {
+      id:2, name:'Sandra Reyes', company:'Soccer Village', email:'sandra@soccervillage.com',
+      phone:'(714) 555-0278', status:'active', territory:'Inland Empire',
+      lastEmail: new Date(Date.now()-1*864e5).toISOString(),
+      brands:['TruSox','Panini','Snoozies'],
+      orders:[
+        {brand:'TruSox',date:'2026-01-15',desc:'Mid Cushion v2 — assorted sizes x30',amount:1200},
+        {brand:'Panini',date:'2025-12-01',desc:'Prizm Road to World Cup hobby box x24',amount:960},
+        {brand:'Snoozies',date:'2025-10-18',desc:'Soccer Ball print — kids sizes x48',amount:420},
+      ],
+      reminders:[],
+      notes:'Best account in IE. Panini moves well — she reorders every 6 weeks during season.'
+    },
+    {
+      id:3, name:'Tom Nguyen', company:"Striker's Den", email:'tom@strikersden.com',
+      phone:'(562) 555-0891', status:'lapsed', territory:'Long Beach',
+      lastEmail: new Date(Date.now()-97*864e5).toISOString(),
+      brands:['Reusch'],
+      orders:[
+        {brand:'Reusch',date:'2024-10-05',desc:'Attrakt Solid x4 pairs',amount:320},
+      ],
+      reminders:[{text:'Re-engage — last order was Oct 2024', date:'2026-04-25'}],
+      notes:'Was interested in adding Minix. Went quiet after Q4. Worth a call.'
+    },
+    {
+      id:4, name:'Lisa Park', company:'Footy HQ', email:'lisa@footyhq.com',
+      phone:'(818) 555-0423', status:'prospect', territory:'San Fernando Valley',
+      lastEmail: new Date(Date.now()-14*864e5).toISOString(),
+      brands:[],
+      orders:[],
+      reminders:[{text:'Send Minix catalog + samples', date:'2026-05-01'}],
+      notes:'Met at trade show. Interested in Minix and Snoozies. Has 3 locations.'
+    },
+    {
+      id:5, name:'Marcus Webb', company:'All-Star Soccer', email:'marcus@allstarsoccer.com',
+      phone:'(213) 555-0667', status:'active', territory:'Los Angeles',
+      lastEmail: new Date(Date.now()-8*864e5).toISOString(),
+      brands:['TruSox','Minix','Reusch'],
+      orders:[
+        {brand:'TruSox',date:'2026-02-20',desc:'Performance crew x60 pairs',amount:1800},
+        {brand:'Minix',date:'2026-01-08',desc:'Ronaldo Legacy + Mbappe x20',amount:780},
+        {brand:'Reusch',date:'2025-11-30',desc:'Training grip x8 pairs',amount:480},
+      ],
+      reminders:[],
+      notes:'High volume. Runs 3 clinics — TruSox is a staple. Wants exclusive window display for Minix.'
+    },
+    {
+      id:6, name:'Amy Chen', company:'Youth Soccer Depot', email:'amy@ysdepot.com',
+      phone:'(949) 555-0312', status:'prospect', territory:'South OC',
+      lastEmail: new Date(Date.now()-22*864e5).toISOString(),
+      brands:['Snoozies'],
+      orders:[
+        {brand:'Snoozies',date:'2025-09-14',desc:'Kids soccer prints trial order x24',amount:210},
+      ],
+      reminders:[{text:'Check in on Snoozies trial sell-through', date:'2026-04-30'}],
+      notes:'Small shop but buys consistently for gift items. Could expand to Panini.'
+    },
+  ];
+  save();
+  showCRM();
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────
+function startAuth() {
+  const clientId = document.getElementById('client-id').value.trim();
+  if (!clientId) { alert('Paste your Google Client ID first.'); return; }
+  localStorage.setItem('mpwcrm_client_id', clientId);
+  const redirect = window.location.href.split('#')[0].split('?')[0];
+  const scope = encodeURIComponent('https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/contacts.readonly');
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirect)}&response_type=token&scope=${scope}&prompt=consent`;
+}
+
+function checkCallback() {
+  const hash = window.location.hash;
+  if (!hash.includes('access_token')) return false;
+  const params = new URLSearchParams(hash.substring(1));
+  state.accessToken = params.get('access_token');
+  history.replaceState(null, '', window.location.pathname);
+  return !!state.accessToken;
+}
+
+// ── Gmail Sync ────────────────────────────────────────────────────────────
+async function resync() {
+  if (!state.accessToken) { alert('Not connected to Gmail. Reload and reconnect, or use demo data.'); return; }
+  await syncGmail();
+}
+
+async function syncGmail() {
+  showOverlay('Connecting to Gmail...', 'Fetching your contacts', 5);
+  try {
+    const contacts = await fetchContacts();
+    setProgress(30, 'Contacts loaded', 'Scanning emails for orders...');
+    const emails = await fetchEmails();
+    setProgress(65, 'Emails fetched', 'Parsing orders with AI...');
+    const accounts = await parseWithAI(emails, contacts);
+    setProgress(95, 'Done!', 'Building your dashboard...');
+    state.accounts = accounts;
+    save();
+    await sleep(500);
+    hideOverlay();
+    document.getElementById('last-sync').textContent = 'Synced: ' + new Date().toLocaleTimeString();
+    showCRM();
+  } catch(e) {
+    hideOverlay();
+    alert('Sync error: ' + e.message);
+  }
+}
+
+async function fetchContacts() {
+  const r = await fetch('https://people.googleapis.com/v1/people/me/connections?personFields=names,emailAddresses,phoneNumbers,organizations&pageSize=500', {
+    headers: { Authorization: 'Bearer ' + state.accessToken }
+  });
+  const d = await r.json();
+  return (d.connections || []).map(c => ({
+    name: c.names?.[0]?.displayName || '',
+    email: c.emailAddresses?.[0]?.value || '',
+    phone: c.phoneNumbers?.[0]?.value || '',
+    company: c.organizations?.[0]?.name || ''
+  })).filter(c => c.email);
+}
+
+async function fetchEmails() {
+  const since = Math.floor((Date.now() - 730 * 864e5) / 1000);
+  const q = encodeURIComponent(`after:${since} (reusch OR trusox OR panini OR minix OR snoozies OR "purchase order" OR "PO#" OR order)`);
+  const r = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=200`, {
+    headers: { Authorization: 'Bearer ' + state.accessToken }
+  });
+  const d = await r.json();
+  const ids = (d.messages || []).slice(0, 80).map(m => m.id);
+  return Promise.all(ids.map(id =>
+    fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full`, {
+      headers: { Authorization: 'Bearer ' + state.accessToken }
+    }).then(r => r.json())
+  ));
+}
+
+function extractText(msg) {
+  const h = msg.payload?.headers || [];
+  const get = name => h.find(x => x.name === name)?.value || '';
+  let body = '';
+  function walk(part) {
+    if (part.mimeType === 'text/plain' && part.body?.data)
+      body += atob(part.body.data.replace(/-/g,'+').replace(/_/g,'/'));
+    (part.parts || []).forEach(walk);
+  }
+  walk(msg.payload || {});
+  return { from: get('From'), subject: get('Subject'), date: get('Date'), body: body.slice(0, 600) };
+}
+
+async function parseWithAI(emails, contacts) {
+  const emailData = emails.map(extractText).filter(e => e.from || e.subject);
+  const prompt = `You are a data extraction assistant for Matty, a soccer gear sales rep who reps: Reusch, TruSox, Panini, Minix, Snoozies.
+
+Gmail contacts:
+${JSON.stringify(contacts.slice(0,50))}
+
+Emails (last 2 years):
+${JSON.stringify(emailData.slice(0,60))}
+
+Extract all retail accounts Matty has communicated with. Return a JSON array where each item is:
+{
+  "id": number,
+  "name": string (contact person),
+  "company": string,
+  "email": string,
+  "phone": string or "",
+  "status": "active" (ordered in last 12mo) | "lapsed" (ordered 12-24mo ago) | "prospect" (no orders),
+  "territory": string or "",
+  "lastEmail": ISO date string of most recent email,
+  "brands": [brands they have ordered],
+  "orders": [{"brand": string, "date": "YYYY-MM-DD", "desc": string, "amount": number or 0}],
+  "reminders": [],
+  "notes": ""
+}
+
+Return ONLY a valid JSON array. No markdown, no explanation.`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await resp.json();
+  const text = (data.content || []).map(c => c.text || '').join('');
+  try { return JSON.parse(text.replace(/```json|```/g, '').trim()); }
+  catch(e) { return []; }
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────
+function showCRM() {
+  document.getElementById('connect-screen').style.display = 'none';
+  const s = document.getElementById('crm-screen');
+  s.style.display = 'flex';
+  s.style.flexDirection = 'column';
+  updateFollowupBadge();
+  renderView();
+}
+
+function setView(v, el) {
+  state.view = v;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const titles = { dashboard:'Dashboard', accounts:'All Accounts', followups:'Follow-ups', orders:'Orders' };
+  document.getElementById('view-title').textContent = titles[v];
+  renderView();
+}
+
+function renderView() {
+  const area = document.getElementById('content-area');
+  if (state.view === 'dashboard') area.innerHTML = renderDashboard();
+  else if (state.view === 'accounts') area.innerHTML = renderAccounts();
+  else if (state.view === 'followups') area.innerHTML = renderFollowups();
+  else if (state.view === 'orders') area.innerHTML = renderOrders();
+}
+
+function renderDashboard() {
+  const active = state.accounts.filter(a => a.status==='active').length;
+  const prospects = state.accounts.filter(a => a.status==='prospect').length;
+  const lapsed = state.accounts.filter(a => a.status==='lapsed').length;
+  const totalOrders = state.accounts.reduce((s,a) => s + (a.orders||[]).length, 0);
+  const needsContact = state.accounts.filter(a => daysSince(a.lastEmail) > 30 && a.status==='active');
+
+  return `
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Active Buyers</div><div class="stat-value" style="color:var(--green)">${active}</div><div class="stat-sub">ordered in 12 months</div></div>
+      <div class="stat-card"><div class="stat-label">Prospects</div><div class="stat-value" style="color:var(--blue)">${prospects}</div><div class="stat-sub">no orders yet</div></div>
+      <div class="stat-card"><div class="stat-label">Lapsed</div><div class="stat-value" style="color:var(--red)">${lapsed}</div><div class="stat-sub">12–24 months quiet</div></div>
+      <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-value">${totalOrders}</div><div class="stat-sub">across all accounts</div></div>
+    </div>
+    ${needsContact.length ? `<div class="alert-banner">⚠️ <strong>${needsContact.length} active account${needsContact.length>1?'s':''}</strong> haven't been contacted in 30+ days. <span style="color:var(--amber);cursor:pointer;text-decoration:underline;" onclick="setView('followups',document.getElementById('nav-followups'))">View →</span></div>` : ''}
+    <div class="section-header" style="margin-top:4px;"><div class="section-title">Needs follow-up</div></div>
+    <div class="table-wrap" style="margin-bottom:20px;">${renderTable(state.accounts.filter(a=>daysSince(a.lastEmail)>14).slice(0,6))}</div>
+    <div class="section-header"><div class="section-title">All accounts</div></div>
+    <div class="table-wrap">${renderTable(state.accounts)}</div>`;
+}
+
+function renderAccounts() {
+  const filtered = state.accounts.filter(a => {
+    const ms = !state.searchQuery || a.name.toLowerCase().includes(state.searchQuery.toLowerCase()) || a.company.toLowerCase().includes(state.searchQuery.toLowerCase());
+    const mb = !state.brandFilter || (a.brands||[]).includes(state.brandFilter);
+    const mt = state.tabFilter==='all' || a.status===state.tabFilter;
+    return ms && mb && mt;
+  });
+  return `
+    <div class="section-header">
+      <div class="filter-tabs">
+        <div class="filter-tab ${state.tabFilter==='all'?'active':''}" onclick="state.tabFilter='all';renderView()">All (${state.accounts.length})</div>
+        <div class="filter-tab ${state.tabFilter==='active'?'active':''}" onclick="state.tabFilter='active';renderView()">Active</div>
+        <div class="filter-tab ${state.tabFilter==='prospect'?'active':''}" onclick="state.tabFilter='prospect';renderView()">Prospects</div>
+        <div class="filter-tab ${state.tabFilter==='lapsed'?'active':''}" onclick="state.tabFilter='lapsed';renderView()">Lapsed</div>
+      </div>
+      <input class="search-input" placeholder="Search accounts..." oninput="state.searchQuery=this.value;renderView()" value="${state.searchQuery}" />
+    </div>
+    <div class="table-wrap">${renderTable(filtered)}</div>`;
+}
+
+function renderFollowups() {
+  const overdue = state.accounts.filter(a => daysSince(a.lastEmail) > 30).sort((a,b) => daysSince(b.lastEmail)-daysSince(a.lastEmail));
+  const reminders = state.accounts.filter(a => a.reminders?.length);
+  return `
+    <div class="section-header"><div class="section-title">Overdue (30+ days no contact)</div></div>
+    ${overdue.length ? `<div class="table-wrap" style="margin-bottom:20px;">${renderTable(overdue)}</div>` : '<p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;">No overdue contacts.</p>'}
+    <div class="section-header"><div class="section-title">Pending reminders</div></div>
+    ${reminders.length ? reminders.map(a => a.reminders.map(r=>`
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="selectAccount(${a.id})">
+        <div><div style="font-size:13px;font-weight:500;">${a.company}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${r.text}</div></div>
+        <div style="font-size:11px;color:var(--amber);white-space:nowrap;">${r.date}</div>
+      </div>`).join('')).join('') : '<p style="color:var(--text-muted);font-size:13px;">No reminders set.</p>'}`;
+}
+
+function renderOrders() {
+  const all = [];
+  state.accounts.forEach(a => (a.orders||[]).forEach(o => all.push({...o, account:a.company, accountId:a.id})));
+  all.sort((a,b) => new Date(b.date)-new Date(a.date));
+  const totals = {};
+  BRANDS.forEach(b => { totals[b] = all.filter(o=>o.brand===b).reduce((s,o)=>s+(o.amount||0),0); });
+  return `
+    <div class="stats-row" style="grid-template-columns:repeat(5,1fr);margin-bottom:20px;">
+      ${BRANDS.map(b=>`<div class="stat-card"><div class="stat-label">${b}</div><div class="stat-value" style="font-size:18px;">$${totals[b].toLocaleString()}</div></div>`).join('')}
+    </div>
+    <div class="section-header"><div class="section-title">Order history</div></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Account</th><th>Brand</th><th>Description</th><th>Amount</th></tr></thead>
+      <tbody>${all.slice(0,60).map(o=>`<tr onclick="selectAccount(${o.accountId})" style="cursor:pointer;">
+        <td>${o.date}</td><td>${o.account}</td>
+        <td><span class="brand-tag ${o.brand.toLowerCase()}">${o.brand}</span></td>
+        <td style="color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${o.desc}</td>
+        <td style="font-weight:500;">${o.amount?'$'+o.amount.toLocaleString():'—'}</td>
+      </tr>`).join('')}</tbody></table>
+    </div>`;
+}
+
+function renderTable(accounts) {
+  if (!accounts.length) return '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px;">No accounts found.</div>';
+  return `<table><thead><tr><th>Account</th><th>Status</th><th>Brands</th><th>Last Contact</th><th>Reminders</th><th></th></tr></thead><tbody>
+    ${accounts.map(a => {
+      const d = daysSince(a.lastEmail);
+      const dStr = d===0?'Today':d===1?'Yesterday':d+'d ago';
+      const dCol = d>30?'var(--red)':d>14?'var(--amber)':'var(--text-muted)';
+      return `<tr onclick="selectAccount(${a.id})" class="${state.selectedId===a.id?'selected':''}" style="cursor:pointer;">
+        <td><div style="font-weight:500;">${a.name}</div><div style="font-size:11px;color:var(--text-muted);">${a.company}</div></td>
+        <td><span class="status-badge status-${a.status}"><span class="status-dot"></span>${a.status}</span></td>
+        <td>${(a.brands||[]).map(b=>`<span class="brand-tag ${b.toLowerCase()}">${b}</span>`).join('')||'<span style="color:var(--text-muted);font-size:11px;">none</span>'}</td>
+        <td style="color:${dCol};font-size:12px;">${dStr}</td>
+        <td>${a.reminders?.length?`<span style="color:var(--amber);">● ${a.reminders.length}</span>`:'<span style="color:var(--border2);">—</span>'}</td>
+        <td><button class="action-btn" onclick="event.stopPropagation();selectAccount(${a.id})">View →</button></td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+
+function selectAccount(id) {
+  state.selectedId = id;
+  const a = state.accounts.find(x => x.id===id);
+  if (!a) return;
+  renderView();
+  const d = daysSince(a.lastEmail);
+  const dStr = d===0?'Today':d===1?'Yesterday':d+'d ago';
+  const dCol = d>30?'var(--red)':d>14?'var(--amber)':'inherit';
+  document.getElementById('detail-panel').innerHTML = `
+    <div class="detail-header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div><div class="detail-name">${a.name}</div><div class="detail-company">${a.company}</div></div>
+        <span class="status-badge status-${a.status}">${a.status}</span>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-section">
+        <div class="detail-section-title">Contact Info</div>
+        <div class="detail-row"><span class="detail-key">Email</span><a href="mailto:${a.email}" style="font-size:11px;color:var(--blue);">${a.email}</a></div>
+        <div class="detail-row"><span class="detail-key">Phone</span><span class="detail-val">${a.phone||'—'}</span></div>
+        <div class="detail-row"><span class="detail-key">Territory</span><span class="detail-val">${a.territory||'—'}</span></div>
+        <div class="detail-row"><span class="detail-key">Last email</span><span class="detail-val" style="color:${dCol}">${dStr}</span></div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Orders (${(a.orders||[]).length})</div>
+        ${(a.orders||[]).length ? [...(a.orders||[])].sort((x,y)=>new Date(y.date)-new Date(x.date)).map(o=>`
+          <div class="order-item">
+            <div class="order-item-top"><span class="brand-tag ${o.brand.toLowerCase()}">${o.brand}</span><span class="order-date">${o.date}${o.amount?' · $'+o.amount.toLocaleString():''}</span></div>
+            <div class="order-desc">${o.desc}</div>
+          </div>`).join('') : '<div style="color:var(--text-muted);font-size:12px;">No orders recorded.</div>'}
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Reminders</div>
+        <div id="reminders-list-${id}">${renderRemindersList(a)}</div>
+        <div style="margin-top:8px;">
+          <input class="reminder-input" id="rem-text-${id}" placeholder="Reminder note..." />
+          <input class="reminder-input" id="rem-date-${id}" type="date" />
+          <button class="btn btn-primary" style="width:100%;font-size:11px;padding:7px;" onclick="addReminder(${id})">Add reminder</button>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Notes</div>
+        <textarea class="notes-area" id="notes-${id}">${a.notes||''}</textarea>
+        <button class="btn" style="width:100%;font-size:11px;margin-top:6px;" onclick="saveNotes(${id})">Save notes</button>
+      </div>
+    </div>`;
+}
+
+function renderRemindersList(a) {
+  if (!a.reminders?.length) return '<div style="color:var(--text-muted);font-size:12px;margin-bottom:8px;">No reminders.</div>';
+  return a.reminders.map((r,i) => `
+    <div class="reminder-item">
+      <div><div class="reminder-text">${r.text}</div><div class="reminder-date">${r.date}</div></div>
+      <button class="action-btn" onclick="removeReminder(${a.id},${i})" style="font-size:10px;padding:3px 8px;">✕</button>
+    </div>`).join('');
+}
+
+function addReminder(id) {
+  const a = state.accounts.find(x=>x.id===id);
+  const text = document.getElementById('rem-text-'+id)?.value?.trim();
+  const date = document.getElementById('rem-date-'+id)?.value;
+  if (!text || !date) { alert('Enter both a note and a date.'); return; }
+  if (!a.reminders) a.reminders = [];
+  a.reminders.push({text, date});
+  save(); updateFollowupBadge();
+  document.getElementById('reminders-list-'+id).innerHTML = renderRemindersList(a);
+  document.getElementById('rem-text-'+id).value = '';
+  document.getElementById('rem-date-'+id).value = '';
+}
+
+function removeReminder(id, idx) {
+  const a = state.accounts.find(x=>x.id===id);
+  a.reminders.splice(idx,1);
+  save(); updateFollowupBadge();
+  document.getElementById('reminders-list-'+id).innerHTML = renderRemindersList(a);
+}
+
+function saveNotes(id) {
+  const a = state.accounts.find(x=>x.id===id);
+  a.notes = document.getElementById('notes-'+id)?.value;
+  save();
+  const btn = event.currentTarget;
+  btn.textContent = 'Saved ✓'; btn.style.color = 'var(--green)';
+  setTimeout(() => { btn.textContent = 'Save notes'; btn.style.color = ''; }, 1500);
+}
+
+function showAddAccount() { document.getElementById('add-overlay').style.display='flex'; }
+function closeAddAccount() { document.getElementById('add-overlay').style.display='none'; }
+
+function saveNewAccount() {
+  const brands = [...document.querySelectorAll('#add-overlay input[type=checkbox]:checked')].map(c=>c.value);
+  const a = {
+    id: Date.now(),
+    name: document.getElementById('f-name').value.trim(),
+    company: document.getElementById('f-company').value.trim(),
+    email: document.getElementById('f-email').value.trim(),
+    phone: document.getElementById('f-phone').value.trim(),
+    territory: document.getElementById('f-territory').value.trim(),
+    status: document.getElementById('f-status').value,
+    lastEmail: new Date().toISOString(),
+    brands, orders: [], reminders: [],
+    notes: document.getElementById('f-notes').value.trim()
+  };
+  if (!a.name || !a.company) { alert('Name and company are required.'); return; }
+  state.accounts.push(a);
+  save(); closeAddAccount(); renderView(); updateFollowupBadge();
+}
+
+function toggleBrand(b, el) {
+  state.brandFilter = state.brandFilter===b ? null : b;
+  document.querySelectorAll('.brand-pill').forEach(p => p.classList.remove('active'));
+  if (state.brandFilter) el.classList.add('active');
+  renderView();
+}
+
+function updateFollowupBadge() {
+  const n = state.accounts.filter(a=>a.reminders?.length>0).length;
+  const badge = document.getElementById('followup-count');
+  badge.textContent = n || '';
+  badge.style.display = n ? 'inline' : 'none';
+}
+
+// ── Overlay helpers ───────────────────────────────────────────────────────
+function showOverlay(main, sub, pct) {
+  document.getElementById('sync-overlay').style.display = 'flex';
+  document.getElementById('sync-main').textContent = main;
+  document.getElementById('sync-sub').textContent = sub;
+  document.getElementById('sync-progress').style.width = pct+'%';
+}
+function setProgress(pct, main, sub) {
+  document.getElementById('sync-progress').style.width = pct+'%';
+  if (main) document.getElementById('sync-main').textContent = main;
+  if (sub) document.getElementById('sync-sub').textContent = sub;
+}
+function hideOverlay() { document.getElementById('sync-overlay').style.display = 'none'; }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function daysSince(iso) { return Math.round((Date.now() - new Date(iso)) / 864e5); }
+
+// ── Init ──────────────────────────────────────────────────────────────────
+if (checkCallback()) {
+  showOverlay('Connected!', 'Starting Gmail sync...', 10);
+  syncGmail();
+} else if (loadSaved()) {
+  showCRM();
+} else {
+  // show connect screen (already visible by default)
+}
+</script>
+</body>
+</html>
